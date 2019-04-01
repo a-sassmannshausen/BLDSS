@@ -902,33 +902,21 @@ sub status {
             # in Bug 20750, so calls to it won't work. But since 20750 is
             # currently only in master, they only won't work in master. So
             # we're temporarily going to allow for both cases
+            my $payload = {
+                modulename   => 'ILL',
+                actionname   => 'BLDSS_STATUS_CHECK',
+                objectnumber => $params->{request}->id,
+                infos        => to_json({
+                    log_origin => $self->name,
+                    response =>
+                        $status->{value}->result->orderline->overallStatus
+                })
+            };
             if ($logger->can('set_data')) {
-                $logger->set_data(
-                    {
-                        actionname   => 'BLDSS_STATUS_CHECK',
-                        objectnumber => $params->{request}->id,
-                        infos        => to_json(
-                            {
-                                log_origin => $self->name,
-                                response =>
-                                    $status->{value}->result->orderline->overallStatus
-                            }
-                        )
-                    }
-                );
+                $logger->set_data($payload);
                 $logger->log_something();
             } else {
-                $logger->log_something({
-                    actionname   => 'BLDSS_STATUS_CHECK',
-                    objectnumber => $params->{request}->id,
-                    infos        => to_json(
-                        {
-                            log_origin => $self->name,
-                            response =>
-                                $status->{value}->result->orderline->overallStatus
-                        }
-                    )
-                });
+                $logger->log_something($payload);
             }
         }
 
